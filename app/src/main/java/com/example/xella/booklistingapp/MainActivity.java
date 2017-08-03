@@ -3,107 +3,171 @@ package com.example.xella.booklistingapp;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.content.Loader;
-import android.app.LoaderManager.LoaderCallbacks;
+import android.os.AsyncTask;
+import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity
-        implements LoaderCallbacks<List<Book>> {
+public class MainActivity extends AppCompatActivity {
 
     // Google API URL
-    private static final String BOOKS_URL = "https://www.googleapis.com/books/v1/volumes?q=magic&maxResults=10";
+    private static final String BOOKS_URL = "https://www.googleapis.com/books/v1/volumes?maxResults=10&q=";
 
-    /**
-     * Constant value for the book loader ID. We can choose any integer.
-     * This really only comes into play if you're using multiple loaders.
-     */
-    private static final int BOOK_LOADER_ID = 1;
+    private static final String LOG_TAG = MainActivity.class.getName();
 
-    /** Adapter for the list of earthquakes */
-    private BookAdapter mAdapter;
+    /** Adapter for the list of books */
+    private BookAdapter bookAdapter;
 
-    /** TextView that is displayed when the list is empty */
-    private TextView mEmptyStateTextView;
+    // TextView visible when there is a problem with the internet connection and the list is empty
+    private TextView emptyStateTextView;
+
+    // Progress bar visible when the internet connection is delayed or slow
+    private View loadingIndicator;
+
+    private EditText editTextView;
+    private Button searchButton;
+    private ListView booksListView;
+
+    private static final String LIST_STATE = "list";
+    private Parcelable mListState = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.v(LOG_TAG,"onCreate() called..");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Find a reference to the {@link ListView} in the layout
-        ListView bookListView = (ListView) findViewById(R.id.list_view);
+        // Initiatilzing layout elements EditText, Button and ListView, ProgressBar and TextView for empty state of the list
+        editTextView = (EditText) findViewById(R.id.search_field);
+        searchButton = (Button) findViewById(R.id.search_btn);
+        booksListView = (ListView) findViewById(R.id.list_view);
+        loadingIndicator = findViewById(R.id.loading_indicator);
+        emptyStateTextView = (TextView) findViewById(R.id.empty_view);
+        Log.v(LOG_TAG, "Layout elements are initialized");
 
-        mEmptyStateTextView = (TextView) findViewById(R.id.empty_view);
-        bookListView.setEmptyView(mEmptyStateTextView);
+        booksListView.setEmptyView(emptyStateTextView);
+        emptyStateTextView.setText(R.string.no_data_yet);
 
-        // Create a new adapter that takes an empty list of books as input
-        mAdapter = new BookAdapter(this, new ArrayList<Book>());
+        final ArrayList<Book> booksResult = new ArrayList<>();
 
-        // Set the adapter on the {@link ListView}
-        // so the list can be populated in the user interface
-        bookListView.setAdapter(mAdapter);
+        // Set up the adapter for the ListView
+        bookAdapter = new BookAdapter(MainActivity.this, booksResult);
+        booksListView.setAdapter(bookAdapter);
 
+        // Set the OnClickListener for the seatch button
+        searchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                emptyStateTextView.setVisibility(View.GONE);
+                Log.v(LOG_TAG, "Search button onClickListener called");
+                String urlEnding = editTextView.getText().toString();
+                if (urlEnding.isEmpty()) {
+                    Toast.makeText(MainActivity.this, "Search field is empty!", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                String searchUrl = BOOKS_URL + urlEnding;
+                BookAsyncTask task = new BookAsyncTask();
+                task.execute(searchUrl);
+                loadingIndicator.setVisibility(View.VISIBLE);
+                Log.v(LOG_TAG,"Looking for url: " + searchUrl);
+            }
+        });
+    }
+
+    private void updateUI(List<Book> booksData) {
+        if (booksData != null && !booksData.isEmpty()) {
+            loadingIndicator.setVisibility(View.GONE);
+            //BookAdapter bookAdapter = (BookAdapter) booksListView.getAdapter();
+            bookAdapter.clear();
+            bookAdapter.addAll(booksData);
+            booksListView.setVisibility(View.VISIBLE);
+        } else {
+            booksListView.setVisibility(View.GONE);
+        }
+    }
+
+    // Write list state to bundle
+    @Override
+    protected void onSaveInstanceState(Bundle state) {
+        super.onSaveInstanceState(state);
+        mListState = booksListView.onSaveInstanceState();
+        state.putParcelable(LIST_STATE, mListState);
+    }
+
+    // Restore list state from bundle
+    @Override
+    protected void onRestoreInstanceState(Bundle state) {
+        super.onRestoreInstanceState(state);
+        mListState = state.getParcelable(LIST_STATE);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // ONLY call this part once the data items have been loaded back into the adapter
+        // for example, inside a success callback from the network
+        if (mListState != null) {
+            booksListView.onRestoreInstanceState(mListState);
+            mListState = null;
+        }
+    }
+
+    private class BookAsyncTask extends AsyncTask<String, Void, List<Book>> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            booksListView.setVisibility(View.GONE);
+            emptyStateTextView.setVisibility(View.GONE);
+            loadingIndicator.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        protected List<Book> doInBackground(String... searchUrl) {
+            if (isConnected()) {
+                Log.v(LOG_TAG, "There is an internet connection");
+                if (searchUrl[0].equals(BOOKS_URL)) {
+                    return null;
+                }
+                return QueryUtils.fetchBookData(searchUrl[0]);
+            }
+            Log.v(LOG_TAG, "No internet connection");
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(List<Book> booksData) {
+            // Clear the adapter of previous earthquake data
+            bookAdapter.clear();
+            loadingIndicator.setVisibility(View.GONE);
+            if (isConnected()) {
+                // If there is a valid list of {@link Book}s, then add then to the adapter's
+                // data set. This will trigger the ListView to update.
+                if (booksData != null && !booksData.isEmpty()) {
+                    updateUI(booksData);
+                } else {
+                    emptyStateTextView.setText(R.string.no_books);
+                }
+            } else {
+                emptyStateTextView.setText(R.string.no_internet_connection);
+            }
+        }
+    }
+
+    public boolean isConnected() {
         // Get a reference to the ConnectivityManager to check state of network connectivity
-        ConnectivityManager connMgr = (ConnectivityManager)
-                getSystemService(Context.CONNECTIVITY_SERVICE);
-
+        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         // Get details on the currently active default data network
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-
-        // If there is a network connection, fetch data
-        if (networkInfo != null && networkInfo.isConnected()) {
-            // Get a reference to the LoaderManager, in order to interact with loaders.
-            android.app.LoaderManager loaderManager = getLoaderManager();
-
-            // Initialize the loader. Pass in the int ID constant defined above and pass in null for
-            // the bundle. Pass in this activity for the LoaderCallbacks parameter (which is valid
-            // because this activity implements the LoaderCallbacks interface).
-            loaderManager.initLoader(BOOK_LOADER_ID, null, this);
-        } else {
-            // Otherwise, display error
-            // First, hide loading indicator so error message will be visible
-            View loadingIndicator = findViewById(R.id.loading_indicator);
-            loadingIndicator.setVisibility(View.GONE);
-
-            // Update empty state with no connection error message
-            mEmptyStateTextView.setText(R.string.no_internet_connection);
-        }
-    }
-
-    @Override
-    public Loader<List<Book>> onCreateLoader(int id, Bundle args) {
-        // Create a new loader for the given URL
-        return new BookLoader(this, BOOKS_URL);
-    }
-
-    @Override
-    public void onLoadFinished(Loader<List<Book>> loader, List<Book> books) {
-        // Hide loading indicator because the data has been loaded
-        View loadingIndicator = findViewById(R.id.loading_indicator);
-        loadingIndicator.setVisibility(View.GONE);
-
-        // Set empty state text to display "No books found."
-        mEmptyStateTextView.setText(R.string.no_books);
-
-        // Clear the adapter of previous book data
-        mAdapter.clear();
-
-        // If there is a valid list of {@link Book}s, then add them to the adapter's
-        // data set. This will trigger the ListView to update.
-        if (books != null && !books.isEmpty()) {
-            mAdapter.addAll(books);
-        }
-    }
-
-    @Override
-    public void onLoaderReset(Loader<List<Book>> loader) {
-        // Loader reset, so we can clear out our existing data.
-        mAdapter.clear();
+        return networkInfo != null && networkInfo.isConnected();
     }
 }

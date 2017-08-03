@@ -18,10 +18,6 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by maria on 26/07/17.
- */
-
 public class QueryUtils {
 
     /** Tag for the log messages */
@@ -52,7 +48,7 @@ public class QueryUtils {
 
         // Extract relevant fields from the JSON response and create a list of {@link Earthquake}s
         List<Book> books = extractFeatureFromJson(jsonResponse);
-
+        Log.v(LOG_TAG,"Books amount:" + books.size());
         // Return the list of {@link Earthquake}s
         return books;
     }
@@ -99,7 +95,7 @@ public class QueryUtils {
                 Log.e(LOG_TAG, "Error response code: " + urlConnection.getResponseCode());
             }
         } catch (IOException e) {
-            Log.e(LOG_TAG, "Problem retrieving the earthquake JSON results.", e);
+            Log.e(LOG_TAG, "Problem retrieving the list of books JSON results.", e);
         } finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();
@@ -168,25 +164,40 @@ public class QueryUtils {
                 JSONObject volumeInfo = currentBook.getJSONObject("volumeInfo");
 
                 // Extract the value for the key called "title"
-                String title = volumeInfo.getString("title");
+                String title = "N/A";
+                if (volumeInfo.has("title")) {
+                    title = volumeInfo.getString("title");
+                }
 
                 // Extract the value for the key called "description"
-                String description = volumeInfo.getString("description");
-
-                // Get a JSONArray with author (or authors)
-                JSONArray currentBookAuthor = volumeInfo.getJSONArray("authors");
-                StringBuilder authors = new StringBuilder();
-                for (int j = 0; j < currentBookAuthor.length(); j++) {
-                    String additionalAuthor = currentBookAuthor.getString(j);
-                    authors.append(additionalAuthor + "; ");
+                String description = "N/A";
+                if (volumeInfo.has("description")) {
+                    description = volumeInfo.getString("description");
                 }
-                String author = authors.toString();
 
+                String author = "N/A";
+                // Get a JSONArray with author (or authors)
+                if (volumeInfo.has("authors")) {
+                    JSONArray currentBookAuthor = volumeInfo.getJSONArray("authors");
+                    StringBuilder authors = new StringBuilder();
+                    for (int j = 0; j < currentBookAuthor.length(); j++) {
+                        String additionalAuthor = currentBookAuthor.getString(j);
+                        authors.append(additionalAuthor + "; ");
+                    }
+                    author = authors.toString();
+                }
                 // Extract the value for the key called "publisher"
-                String publisher = volumeInfo.getString("publisher");
+                String publisher = "N/A";
+                if (volumeInfo.has("publisher")) {
+                    publisher = volumeInfo.getString("publisher");
+                }
+
 
                 // Extract the value for the key called "publishedDate"
-                String publishedDate = volumeInfo.getString("publishedDate");
+                String publishedDate = "N/A";
+                if (volumeInfo.has("publisedDate")) {
+                    volumeInfo.getString("publishedDate");
+                }
 
                 // Create a new {@link Book} object with the title, author,
                 // and description from the JSON response.
@@ -203,7 +214,7 @@ public class QueryUtils {
             Log.e("QueryUtils", "Problem parsing the book JSON results", e);
         }
 
-        // Return the list of earthquakes
+        // Return the list of books
         return books;
     }
 

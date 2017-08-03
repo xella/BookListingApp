@@ -6,4 +6,13 @@
 
     <!-- Error message when there is no internet connectivity [CHAR LIMIT=NONE] -->
     <string name="no_internet_connection">No internet connection.</string>
+
+    <string name="no_data_yet">"What would you like to find?\nInput your keywords in a form above"</string>
+
+    <string name="lets_start">Let\'s start!</string>
+
+    <string name="author_label">Author(s):</string>
+    <string name="description_label">Description:</string>
+    <string name="publisher_label">Publisher:</string>
+    <string name="published_date_label">Published date:</string>
 </resources>
