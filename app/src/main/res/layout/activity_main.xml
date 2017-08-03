@@ -14,18 +14,16 @@
 
         <EditText
             android:id="@+id/search_field"
+            style="@style/search_field"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:maxLines="1"
-            android:singleLine="true"
-            android:hint="Enter your keyword.." />
+            android:layout_weight="1" />
 
         <Button
             android:id="@+id/search_btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Search" />
+            android:text="@string/search_button" />
     </LinearLayout>
 
     <ListView
@@ -50,6 +48,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:visibility="gone"/>
+        android:visibility="gone" />
 
 </RelativeLayout>

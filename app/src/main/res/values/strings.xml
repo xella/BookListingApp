@@ -15,4 +15,7 @@
     <string name="description_label">Description:</string>
     <string name="publisher_label">Publisher:</string>
     <string name="published_date_label">Published date:</string>
+
+    <string name="search_button">Search</string>
+    <string name="search_field_hint">Enter your keyword…</string>
 </resources>

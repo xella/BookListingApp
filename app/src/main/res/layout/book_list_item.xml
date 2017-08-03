@@ -7,13 +7,9 @@
 
     <TextView
         android:id="@+id/title"
+        style="@style/title_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/colorPrimary"
-        android:padding="16dp"
-        android:textColor="@android:color/white"
-        android:textSize="24sp"
-        android:textStyle="bold"
         tools:text="Book Title" />
 
     <LinearLayout
@@ -22,20 +18,16 @@
         android:orientation="vertical">
 
         <TextView
+            style="@style/field_label"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:text="@string/author_label"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            android:text="@string/author_label" />
 
         <TextView
             android:id="@+id/author"
+            style="@style/author_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:textSize="16sp"
-            android:textStyle="italic"
             tools:text="Author Name" />
     </LinearLayout>
 
@@ -46,19 +38,16 @@
         android:orientation="vertical">
 
         <TextView
+            style="@style/field_label"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:text="@string/description_label"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            android:text="@string/description_label" />
 
         <TextView
             android:id="@+id/description"
+            style="@style/description_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:textSize="16sp"
             tools:text="Book Description" />
     </LinearLayout>
 
@@ -68,21 +57,17 @@
         android:orientation="horizontal">
 
         <TextView
+            style="@style/field_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:text="@string/publisher_label"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            android:text="@string/publisher_label" />
 
         <TextView
             android:id="@+id/publisher"
+            style="@style/publisher_published_date_text"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:padding="8dp"
-            android:textAlignment="viewStart"
-            android:textSize="16sp"
             tools:text="Publisher" />
     </LinearLayout>
 
@@ -92,21 +77,17 @@
         android:orientation="horizontal">
 
         <TextView
+            style="@style/field_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:text="@string/published_date_label"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            android:text="@string/published_date_label" />
 
         <TextView
             android:id="@+id/published_date"
+            style="@style/publisher_published_date_text"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:padding="8dp"
-            android:textAlignment="viewStart"
-            android:textSize="16sp"
             tools:text="Published Date" />
     </LinearLayout>
 </LinearLayout>
